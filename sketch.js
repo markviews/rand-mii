@@ -9,16 +9,6 @@
 
 */
 
-function share() {
-  var message = document.getElementById("copyMsg");
-  message.classList.add("show");
-  setTimeout(function() {
-      message.classList.remove("show");
-  }, 1000);
-
-  navigator.clipboard.writeText(window.location.href);
-}
-
 var parts = {
   hair: [
     {
@@ -719,20 +709,107 @@ var options = {
   }
 }
 
+function share() {
+  var message = document.getElementById("copyMsg");
+  message.classList.add("show");
+  setTimeout(function() {
+      message.classList.remove("show");
+  }, 1000);
+
+  // make options json smaller
+  var minOptions = {
+    a: [options.head.index, options.head.size, options.head.addY, options.head.color],
+    b: [options.hair.index, options.hair.size, options.hair.addY, options.hair.color],
+    c: [options.mouth.index, options.mouth.size, options.mouth.addY, options.mouth.rotation, options.mouth.color],
+    d: [options.nose.index, options.nose.size, options.nose.addY, options.nose.rotation, options.nose.color],
+    e: [options.eye.index, options.eye.size, options.eye.addY, options.eye.spacing, options.eye.rotation, options.eye.color],
+    f: [options.eyebrow.index, options.eyebrow.size, options.eyebrow.addY, options.eyebrow.spacing, options.eyebrow.rotation, options.eyebrow.color]
+  }
+
+  var data = encodeURI(JSON.stringify(minOptions));
+  window.history.pushState('', '', '?data=' + data);
+  navigator.clipboard.writeText(window.location.href);
+}
+
 function loadPage() {
   seedInput = document.getElementById('seed');
 
   // check for seed in url
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
+  const urlParams = new URLSearchParams(window.location.search);
+
+  const data = urlParams.get('data');
+  if (data) {
+    loadData();
+    return;
+  }
+
   const seed = urlParams.get('seed');
   if (seed) {
     options.seed = seed;
     seedInput.value = seed;
     loadSeed();
-  } else {
+    return;
+  }
+
+  newSeed();
+}
+
+function loadData() {
+  const urlParams = new URLSearchParams(window.location.search);
+  let minOptions = JSON.parse(decodeURI(urlParams.get('data')));
+
+  // load minified options into normal json
+  try {
+    options = {
+      seed: '',
+      currentMenu: 'eyebrow',
+      head: {
+        index: minOptions.a[0],
+        size: minOptions.a[1],
+        addY: minOptions.a[2],
+        color: minOptions.a[3]
+      },
+      hair: {
+        index: minOptions.b[0],
+        size: minOptions.b[1],
+        addY: minOptions.b[2],
+        color: minOptions.b[3]
+      },
+      mouth: {
+        index: minOptions.c[0],
+        size: minOptions.c[1],
+        addY: minOptions.c[2],
+        rotation: minOptions.c[3],
+        color: minOptions.c[4]
+      },
+      nose: {
+        index: minOptions.d[0],
+        size: minOptions.d[1],
+        addY: minOptions.d[2],
+        rotation: minOptions.d[3],
+        color: minOptions.d[4]
+      },
+      eye: {
+        index: minOptions.e[0],
+        size: minOptions.e[1],
+        addY: minOptions.e[2],
+        spacing: minOptions.e[3],
+        rotation: minOptions.e[4],
+        color: minOptions.e[5]
+      },
+      eyebrow: {
+        index: minOptions.f[0],
+        size: minOptions.f[1],
+        addY: minOptions.f[2],
+        spacing: minOptions.f[3],
+        rotation: minOptions.f[4],
+        color: minOptions.f[5]
+      }
+    }
+  } catch (e) {
     newSeed();
   }
+
 }
 
 function newSeed() {
